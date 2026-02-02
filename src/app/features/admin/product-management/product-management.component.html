@@ -1,0 +1,157 @@
+<section class="admin-page">
+  <div class="admin-header">
+    <h1 class="page-title">Quản lý sản phẩm</h1>
+    <button type="button" class="btn btn-primary" (click)="openCreate()">Thêm sản phẩm</button>
+  </div>
+
+  @if (error()) {
+    <p class="error-message">{{ error() }}</p>
+  }
+
+  @if (loading()) {
+    <div class="table-skeleton">
+      <app-skeleton width="100%" height="48px" />
+      @for (i of [1,2,3,4,5,6]; track i) {
+        <app-skeleton width="100%" height="56px" />
+      }
+    </div>
+  } @else if (products().length === 0) {
+    <p class="empty-message">Chưa có sản phẩm nào.</p>
+  } @else {
+    <div class="table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Ảnh</th>
+            <th>ID</th>
+            <th>Tên</th>
+            <th>Giá</th>
+            <th>Thao tác</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (p of products(); track p.id) {
+            <tr>
+              <td>
+                <img
+                  [src]="p.thumbnail | imageUrl"
+                  [alt]="p.name"
+                  class="table-thumb"
+                />
+              </td>
+              <td>{{ p.id }}</td>
+              <td>{{ p.name }}</td>
+              <td>{{ formatPrice(p.price) }}</td>
+              <td>
+                <div class="table-actions">
+                  <button type="button" class="btn btn-sm btn-edit" (click)="openEdit(p.id)">Sửa</button>
+                  <button type="button" class="btn btn-sm btn-upload" (click)="openUpload(p.id)">Ảnh</button>
+                  <button type="button" class="btn btn-sm btn-delete" (click)="deleteProduct(p.id, p.name)">Xóa</button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>
+
+@if (modalOpen()) {
+  <div class="modal-overlay" (click)="closeModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ modalMode() === 'create' ? 'Thêm sản phẩm' : 'Sửa sản phẩm' }}</h2>
+        <button type="button" class="modal-close" (click)="closeModal()" aria-label="Đóng">&times;</button>
+      </div>
+      <form [formGroup]="productForm" (ngSubmit)="onSubmit()" class="modal-body">
+        @if (formError()) {
+          <p class="form-error">{{ formError() }}</p>
+        }
+        <div class="form-row">
+          <div class="form-group">
+            <label for="name">Tên *</label>
+            <input id="name" type="text" formControlName="name" class="form-input" />
+            @if (productForm.get('name')?.invalid && productForm.get('name')?.touched) {
+              <span class="field-error">Tên 2–200 ký tự.</span>
+            }
+          </div>
+          <div class="form-group">
+            <label for="slug">Slug *</label>
+            <input id="slug" type="text" formControlName="slug" class="form-input" placeholder="a-z, 0-9, -" />
+            @if (productForm.get('slug')?.invalid && productForm.get('slug')?.touched) {
+              <span class="field-error">Chỉ a-z, 0-9 và dấu -.</span>
+            }
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="description">Mô tả</label>
+          <textarea id="description" formControlName="description" class="form-input form-textarea" rows="3"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="quantity">Số lượng *</label>
+            <input id="quantity" type="number" formControlName="quantity" class="form-input" min="0" />
+          </div>
+          <div class="form-group">
+            <label for="price">Giá *</label>
+            <input id="price" type="number" formControlName="price" class="form-input" min="0.01" step="0.01" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="status">Trạng thái</label>
+            <select id="status" formControlName="status" class="form-input">
+              @for (s of statusOptions; track s) {
+                <option [value]="s">{{ s }}</option>
+              }
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="categoryId">Category ID *</label>
+            <input id="categoryId" type="number" formControlName="categoryId" class="form-input" min="1" />
+          </div>
+        </div>
+        <div class="form-group form-check">
+          <input id="isActive" type="checkbox" formControlName="isActive" />
+          <label for="isActive">Đang bán</label>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="closeModal()">Hủy</button>
+          <button type="submit" class="btn btn-primary" [disabled]="saving()">
+            {{ saving() ? 'Đang lưu...' : 'Lưu' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+@if (uploadProductId() !== null) {
+  <div class="modal-overlay" (click)="closeUpload()">
+    <div class="modal modal-sm" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Upload ảnh sản phẩm</h2>
+        <button type="button" class="modal-close" (click)="closeUpload()" aria-label="Đóng">&times;</button>
+      </div>
+      <div class="modal-body">
+        @if (formError()) {
+          <p class="form-error">{{ formError() }}</p>
+        }
+        <div class="form-group">
+          <label>Chọn ảnh (nhiều file)</label>
+          <input type="file" accept="image/*" multiple (change)="onFileSelect($event)" class="form-input" />
+          @if (uploadFiles().length > 0) {
+            <p class="upload-hint">{{ uploadFiles().length }} file đã chọn.</p>
+          }
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="closeUpload()">Hủy</button>
+          <button type="button" class="btn btn-primary" [disabled]="uploadFiles().length === 0 || uploadSaving()" (click)="submitUpload()">
+            {{ uploadSaving() ? 'Đang tải...' : 'Tải lên' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

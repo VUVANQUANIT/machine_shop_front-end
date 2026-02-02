@@ -1,0 +1,41 @@
+<section class="product-list-page">
+  <h1 class="page-title">Sản phẩm</h1>
+
+  @if (loading) {
+    <div class="product-grid">
+      @for (i of [1,2,3,4,5,6]; track i) {
+        <div class="product-card product-card--skeleton">
+          <app-skeleton width="100%" height="200px" borderRadius="12px" />
+          <div class="product-card__body">
+            <app-skeleton width="80%" height="1.25rem" />
+            <app-skeleton width="50%" height="1.5rem" />
+          </div>
+        </div>
+      }
+    </div>
+  } @else if (error) {
+    <p class="error-message">{{ error }}</p>
+  } @else if (products.length === 0) {
+    <p class="empty-message">Chưa có sản phẩm nào.</p>
+  } @else {
+    <div class="product-grid">
+      @for (product of products; track product.id) {
+        <a [routerLink]="['/products', product.id]" class="product-card">
+          <div class="product-card__image-wrap">
+            <img
+              [src]="product.thumbnail | imageUrl"
+              [alt]="product.name"
+              class="product-card__image"
+              loading="lazy"
+            />
+          </div>
+          <div class="product-card__body">
+            <h2 class="product-card__name">{{ product.name }}</h2>
+            <p class="product-card__price">{{ formatPrice(product.price) }}</p>
+            <span class="product-card__cta">Xem chi tiết</span>
+          </div>
+        </a>
+      }
+    </div>
+  }
+</section>

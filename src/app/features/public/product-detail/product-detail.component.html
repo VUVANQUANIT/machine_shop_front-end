@@ -1,0 +1,56 @@
+<section class="product-detail-page">
+  @if (loading) {
+    <div class="detail-skeleton">
+      <app-skeleton width="100%" height="360px" borderRadius="12px" />
+      <div class="detail-skeleton__body">
+        <app-skeleton width="60%" height="2rem" />
+        <app-skeleton width="40%" height="1.5rem" />
+        <app-skeleton width="100%" height="4rem" />
+      </div>
+    </div>
+  } @else if (error || !product) {
+    <p class="error-message">{{ error ?? 'Sản phẩm không tồn tại.' }}</p>
+    <a routerLink="/products" class="back-link">← Quay lại danh sách</a>
+  } @else {
+    <a routerLink="/products" class="back-link">← Quay lại danh sách</a>
+
+    <div class="detail-layout">
+      <div class="detail-gallery">
+        <div class="detail-gallery__main">
+          <img
+            [src]="mainImage | imageUrl"
+            [alt]="product.name"
+            class="detail-gallery__main-img"
+          />
+        </div>
+        @if (product.images.length > 1) {
+          <div class="detail-gallery__thumbs">
+            @for (img of product.images; track img; let i = $index) {
+              <button
+                type="button"
+                class="detail-gallery__thumb"
+                [class.detail-gallery__thumb--active]="selectedImageIndex === i"
+                (click)="selectedImageIndex = i"
+              >
+                <img [src]="img | imageUrl" [alt]="product.name + ' ' + (i + 1)" />
+              </button>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="detail-info">
+        <h1 class="detail-info__name">{{ product.name }}</h1>
+        @if (product.categoryName) {
+          <p class="detail-info__category">{{ product.categoryName }}</p>
+        }
+        <p class="detail-info__price">{{ formatPrice(product.price) }}</p>
+
+        <div class="detail-actions">
+          <a [href]="'tel:0901234567'" class="btn btn-call">Gọi điện</a>
+          <a [href]="'https://zalo.me/0901234567'" target="_blank" rel="noopener noreferrer" class="btn btn-zalo">Zalo</a>
+        </div>
+      </div>
+    </div>
+  }
+</section>

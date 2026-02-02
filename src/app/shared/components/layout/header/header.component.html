@@ -1,0 +1,16 @@
+<header class="header">
+  <div class="header-inner">
+    <a routerLink="/products" class="logo">Machine Shop</a>
+    <nav class="nav">
+      <a routerLink="/products" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: false }">
+        Sản phẩm
+      </a>
+      @if (isAdmin) {
+        <a routerLink="/admin/products" routerLinkActive="active">Quản lý</a>
+        <button type="button" class="btn-logout" (click)="logout()">Đăng xuất</button>
+      } @else {
+        <a routerLink="/admin/login" routerLinkActive="active">Đăng nhập</a>
+      }
+    </nav>
+  </div>
+</header>

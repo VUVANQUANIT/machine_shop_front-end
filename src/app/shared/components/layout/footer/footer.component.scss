@@ -1,0 +1,32 @@
+.footer {
+  margin-top: auto;
+  background: #f9fafb;
+  border-top: 1px solid #e5e7eb;
+}
+
+.footer-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.copyright {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.link {
+  color: #4b5563;
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  &:hover {
+    color: #1a1a1a;
+  }
+}
