@@ -21,12 +21,31 @@ export interface ProductListDTO {
   thumbnail: string | null;
 }
 
+export interface SpecEntryDTO {
+  specKey: string;
+  specValue: string;
+}
+
 export interface ProductDetailDTO {
   id: number;
   name: string;
   price: number;
   images: string[];
   categoryName: string | null;
+  specifications?: SpecEntryDTO[];
+}
+
+export interface CategoryDTO {
+  id: number;
+  name: string;
+}
+
+/** Response chuẩn API admin (success, message, data). */
+export interface ApiResponse<T> {
+  success: boolean;
+  message: string;
+  data: T;
+  timestamp: string;
 }
 
 export interface PageResponse<T> {

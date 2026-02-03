@@ -17,6 +17,9 @@ import type {
   ProductCreate,
   ProductUpdate,
   ProductStatus,
+  CategoryDTO,
+  ProductDetailDTO,
+  SpecEntryDTO,
 } from '../../../core/models';
 import type { ApiError, ValidationError } from '../../../core/models';
 
@@ -35,6 +38,7 @@ export class ProductManagementComponent implements OnInit {
   private readonly cdr = inject(ChangeDetectorRef);
 
   products = signal<ProductListDTO[]>([]);
+  categories = signal<CategoryDTO[]>([]);
   loading = signal(true);
   error = signal<string | null>(null);
   modalOpen = signal(false);
@@ -45,6 +49,15 @@ export class ProductManagementComponent implements OnInit {
   uploadProductId = signal<number | null>(null);
   uploadFiles = signal<File[]>([]);
   uploadSaving = signal(false);
+  uploadDetail = signal<ProductDetailDTO | null>(null);
+  specProductId = signal<number | null>(null);
+  specDetail = signal<ProductDetailDTO | null>(null);
+  specForm = this.fb.nonNullable.group({
+    specKey: ['', [Validators.required, Validators.maxLength(100)]],
+    specValue: ['', [Validators.required, Validators.maxLength(500)]],
+  });
+  specSaving = signal(false);
+  specFormError = signal<string | null>(null);
 
   statusOptions = STATUS_OPTIONS;
 
@@ -61,6 +74,14 @@ export class ProductManagementComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadProducts();
+    this.loadCategories();
+  }
+
+  loadCategories(): void {
+    this.productService.getCategories().subscribe({
+      next: (list) => this.categories.set(list),
+      error: () => {},
+    });
   }
 
   loadProducts(): void {
@@ -82,6 +103,8 @@ export class ProductManagementComponent implements OnInit {
     this.modalMode.set('create');
     this.editingId.set(null);
     this.formError.set(null);
+    const cats = this.categories();
+    const defaultCategoryId = cats.length > 0 ? cats[0].id : 1;
     this.productForm.reset({
       name: '',
       slug: '',
@@ -89,7 +112,7 @@ export class ProductManagementComponent implements OnInit {
       quantity: 0,
       price: 0,
       status: 'ACTIVE',
-      categoryId: 1,
+      categoryId: defaultCategoryId,
       isActive: true,
     });
     this.modalOpen.set(true);
@@ -149,7 +172,7 @@ export class ProductManagementComponent implements OnInit {
         isActive: raw.isActive,
       };
       this.productService.create(body).subscribe({
-        next: () => {
+        next: (res) => {
           this.saving.set(false);
           this.closeModal();
           this.loadProducts();
@@ -171,7 +194,7 @@ export class ProductManagementComponent implements OnInit {
         isActive: raw.isActive,
       };
       this.productService.update(id, body).subscribe({
-        next: () => {
+        next: (res) => {
           this.saving.set(false);
           this.closeModal();
           this.loadProducts();
@@ -195,11 +218,62 @@ export class ProductManagementComponent implements OnInit {
   openUpload(id: number): void {
     this.uploadProductId.set(id);
     this.uploadFiles.set([]);
+    this.uploadDetail.set(null);
+    this.formError.set(null);
+    this.productService.getDetail(id).subscribe({
+      next: (detail) => this.uploadDetail.set(detail),
+      error: () => {},
+    });
   }
 
   closeUpload(): void {
     this.uploadProductId.set(null);
     this.uploadFiles.set([]);
+    this.uploadDetail.set(null);
+  }
+
+  openSpec(id: number): void {
+    this.specProductId.set(id);
+    this.specDetail.set(null);
+    this.specFormError.set(null);
+    this.specForm.reset({ specKey: '', specValue: '' });
+    this.productService.getDetail(id).subscribe({
+      next: (detail) => this.specDetail.set(detail),
+      error: () => this.specFormError.set('Không thể tải thông số.'),
+    });
+  }
+
+  closeSpec(): void {
+    this.specProductId.set(null);
+    this.specDetail.set(null);
+  }
+
+  addSpec(): void {
+    this.specFormError.set(null);
+    if (this.specForm.invalid) {
+      this.specForm.markAllAsTouched();
+      return;
+    }
+    const productId = this.specProductId();
+    if (productId === null) return;
+    const raw = this.specForm.getRawValue();
+    const body: SpecEntryDTO[] = [
+      { specKey: raw.specKey, specValue: raw.specValue },
+    ];
+    this.specSaving.set(true);
+    this.productService.addSpecifications(productId, body).subscribe({
+      next: () => {
+        this.specSaving.set(false);
+        this.specForm.reset({ specKey: '', specValue: '' });
+        this.productService.getDetail(productId).subscribe({
+          next: (detail) => this.specDetail.set(detail),
+        });
+      },
+      error: (err: ApiError) => {
+        this.specSaving.set(false);
+        this.specFormError.set(err.message ?? 'Thêm thông số thất bại.');
+      },
+    });
   }
 
   onFileSelect(event: Event): void {
@@ -216,9 +290,12 @@ export class ProductManagementComponent implements OnInit {
     if (productId === null || files.length === 0) return;
     this.uploadSaving.set(true);
     this.productService.uploadImages(productId, files).subscribe({
-      next: () => {
+      next: (res) => {
         this.uploadSaving.set(false);
-        this.closeUpload();
+        this.uploadFiles.set([]);
+        this.productService.getDetail(productId).subscribe({
+          next: (detail) => this.uploadDetail.set(detail),
+        });
         this.loadProducts();
       },
       error: (err: ApiError) => {

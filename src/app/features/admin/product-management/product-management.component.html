@@ -46,6 +46,7 @@
                 <div class="table-actions">
                   <button type="button" class="btn btn-sm btn-edit" (click)="openEdit(p.id)">Sửa</button>
                   <button type="button" class="btn btn-sm btn-upload" (click)="openUpload(p.id)">Ảnh</button>
+                  <button type="button" class="btn btn-sm btn-spec" (click)="openSpec(p.id)">Thông số</button>
                   <button type="button" class="btn btn-sm btn-delete" (click)="deleteProduct(p.id, p.name)">Xóa</button>
                 </div>
               </td>
@@ -108,8 +109,15 @@
             </select>
           </div>
           <div class="form-group">
-            <label for="categoryId">Category ID *</label>
-            <input id="categoryId" type="number" formControlName="categoryId" class="form-input" min="1" />
+            <label for="categoryId">Loại sản phẩm *</label>
+            <select id="categoryId" formControlName="categoryId" class="form-input">
+              @for (c of categories(); track c.id) {
+                <option [value]="c.id">{{ c.name }}</option>
+              }
+              @if (categories().length === 0) {
+                <option [value]="1">Đang tải...</option>
+              }
+            </select>
           </div>
         </div>
         <div class="form-group form-check">
@@ -129,27 +137,87 @@
 
 @if (uploadProductId() !== null) {
   <div class="modal-overlay" (click)="closeUpload()">
-    <div class="modal modal-sm" (click)="$event.stopPropagation()">
+    <div class="modal" (click)="$event.stopPropagation()">
       <div class="modal-header">
-        <h2>Upload ảnh sản phẩm</h2>
+        <h2>Ảnh sản phẩm</h2>
         <button type="button" class="modal-close" (click)="closeUpload()" aria-label="Đóng">&times;</button>
       </div>
       <div class="modal-body">
         @if (formError()) {
           <p class="form-error">{{ formError() }}</p>
         }
+        @if (uploadDetail()) {
+          <div class="form-group">
+            <label>Ảnh hiện tại</label>
+            <div class="image-list">
+              @for (img of uploadDetail()!.images; track img) {
+                <div class="image-list__item">
+                  <img [src]="img | imageUrl" alt="" class="image-list__thumb" />
+                </div>
+              }
+              @if (uploadDetail()!.images.length === 0) {
+                <p class="image-list__empty">Chưa có ảnh.</p>
+              }
+            </div>
+          </div>
+        }
         <div class="form-group">
-          <label>Chọn ảnh (nhiều file)</label>
+          <label>Chọn thêm ảnh (nhiều file)</label>
           <input type="file" accept="image/*" multiple (change)="onFileSelect($event)" class="form-input" />
           @if (uploadFiles().length > 0) {
             <p class="upload-hint">{{ uploadFiles().length }} file đã chọn.</p>
           }
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" (click)="closeUpload()">Hủy</button>
+          <button type="button" class="btn btn-secondary" (click)="closeUpload()">Đóng</button>
           <button type="button" class="btn btn-primary" [disabled]="uploadFiles().length === 0 || uploadSaving()" (click)="submitUpload()">
             {{ uploadSaving() ? 'Đang tải...' : 'Tải lên' }}
           </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+@if (specProductId() !== null) {
+  <div class="modal-overlay" (click)="closeSpec()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Thông số kỹ thuật</h2>
+        <button type="button" class="modal-close" (click)="closeSpec()" aria-label="Đóng">&times;</button>
+      </div>
+      <div class="modal-body">
+        @if (specFormError()) {
+          <p class="form-error">{{ specFormError() }}</p>
+        }
+        @if (specDetail()) {
+          <div class="form-group">
+            <label>Danh sách hiện tại</label>
+            <ul class="spec-list">
+              @for (s of (specDetail()!.specifications ?? []); track s.specKey + s.specValue) {
+                <li class="spec-list__item">{{ s.specKey }}: {{ s.specValue }}</li>
+              }
+              @if (!specDetail()!.specifications?.length) {
+                <li class="spec-list__empty">Chưa có thông số.</li>
+              }
+            </ul>
+          </div>
+        }
+        <div class="form-group">
+          <label>Thêm thông số</label>
+          <form [formGroup]="specForm" (ngSubmit)="addSpec()" class="spec-form">
+            <div class="form-row">
+              <div class="form-group">
+                <input formControlName="specKey" class="form-input" placeholder="Tên thông số (vd: Công suất)" />
+              </div>
+              <div class="form-group">
+                <input formControlName="specValue" class="form-input" placeholder="Giá trị (vd: 750W)" />
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm" [disabled]="specForm.invalid || specSaving()">
+              {{ specSaving() ? 'Đang thêm...' : 'Thêm' }}
+            </button>
+          </form>
         </div>
       </div>
     </div>
