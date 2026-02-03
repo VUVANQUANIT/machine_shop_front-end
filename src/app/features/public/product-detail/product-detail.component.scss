@@ -98,6 +98,33 @@
   color: #2563eb;
 }
 
+.detail-specs {
+  margin-bottom: 1.5rem;
+}
+
+.detail-specs__title {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.detail-specs__list {
+  margin: 0;
+  padding-left: 1.25rem;
+  list-style-type: disc;
+  font-size: 0.9375rem;
+  color: #4b5563;
+  line-height: 1.6;
+}
+
+.detail-specs__item {
+  margin-bottom: 0.25rem;
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
 .detail-actions {
   display: flex;
   gap: 0.75rem;

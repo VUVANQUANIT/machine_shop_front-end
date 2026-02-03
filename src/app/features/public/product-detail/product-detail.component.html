@@ -46,6 +46,17 @@
         }
         <p class="detail-info__price">{{ formatPrice(product.price) }}</p>
 
+        @if (product.specifications && product.specifications.length > 0) {
+          <div class="detail-specs">
+            <h3 class="detail-specs__title">Thông số kỹ thuật</h3>
+            <ul class="detail-specs__list">
+              @for (spec of product.specifications; track spec.specKey + spec.specValue) {
+                <li class="detail-specs__item">{{ spec.specKey }}: {{ spec.specValue }}</li>
+              }
+            </ul>
+          </div>
+        }
+
         <div class="detail-actions">
           <a [href]="'tel:0901234567'" class="btn btn-call">Gọi điện</a>
           <a [href]="'https://zalo.me/0901234567'" target="_blank" rel="noopener noreferrer" class="btn btn-zalo">Zalo</a>

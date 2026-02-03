@@ -9,6 +9,9 @@ import type {
   PageResponse,
   ProductCreate,
   ProductUpdate,
+  CategoryDTO,
+  SpecEntryDTO,
+  ApiResponse,
 } from '../models';
 
 @Injectable({ providedIn: 'root' })
@@ -29,6 +32,10 @@ export class ProductService {
     return this.http.get<ProductDTO>(`${this.base}/public/products/${id}`);
   }
 
+  getCategories(): Observable<CategoryDTO[]> {
+    return this.http.get<CategoryDTO[]>(`${this.base}/public/categories`);
+  }
+
   search(name: string, page: number, size: number): Observable<PageResponse<ProductDTO>> {
     let params = new HttpParams().set('page', page).set('size', size);
     if (name.trim()) {
@@ -39,26 +46,43 @@ export class ProductService {
     });
   }
 
-  create(body: ProductCreate): Observable<ProductDTO> {
-    return this.http.post<ProductDTO>(`${this.base}/admin/products`, body);
+  create(body: ProductCreate): Observable<ApiResponse<ProductDTO>> {
+    return this.http.post<ApiResponse<ProductDTO>>(
+      `${this.base}/admin/products`,
+      body
+    );
   }
 
-  update(id: number, body: ProductUpdate): Observable<ProductDTO> {
-    return this.http.put<ProductDTO>(`${this.base}/admin/products/${id}`, body);
+  update(id: number, body: ProductUpdate): Observable<ApiResponse<ProductDTO>> {
+    return this.http.put<ApiResponse<ProductDTO>>(
+      `${this.base}/admin/products/${id}`,
+      body
+    );
   }
 
-  delete(id: number): Observable<string> {
-    return this.http.delete(`${this.base}/admin/products/${id}`, {
-      responseType: 'text',
-    });
+  delete(id: number): Observable<ApiResponse<{ id: number }>> {
+    return this.http.delete<ApiResponse<{ id: number }>>(
+      `${this.base}/admin/products/${id}`
+    );
   }
 
-  uploadImages(productId: number, files: File[]): Observable<void> {
+  uploadImages(
+    productId: number,
+    files: File[]
+  ): Observable<ApiResponse<{ productId: number; uploadedCount: number }>> {
     const formData = new FormData();
     files.forEach((file) => formData.append('files', file));
-    return this.http.post<void>(
-      `${this.base}/admin/products/${productId}/images`,
-      formData
-    );
+    return this.http.post<
+      ApiResponse<{ productId: number; uploadedCount: number }>
+    >(`${this.base}/admin/products/${productId}/images`, formData);
+  }
+
+  addSpecifications(
+    productId: number,
+    body: SpecEntryDTO[]
+  ): Observable<ApiResponse<{ productId: number; addedCount: number }>> {
+    return this.http.post<
+      ApiResponse<{ productId: number; addedCount: number }>
+    >(`${this.base}/admin/products/${productId}/specifications`, body);
   }
 }

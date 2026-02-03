@@ -16,6 +16,31 @@ Tài liệu mô tả chi tiết REST API để tích hợp với ứng dụng An
 
 Backend cho phép origin từ frontend. Nếu chạy Angular ở `http://localhost:4200`, cần cấu hình CORS phía backend cho origin đó (hoặc dùng proxy trong `angular.json` / `proxy.conf.json`).
 
+### Response chuẩn (API Admin – production)
+
+Các API admin (tạo/sửa/xóa sản phẩm, category, upload ảnh, thêm specifications) trả về **cùng một format** để frontend dễ hiển thị thông báo và dùng dữ liệu:
+
+```json
+{
+  "success": true,
+  "message": "Tạo sản phẩm thành công.",
+  "data": { ... },
+  "timestamp": "2025-01-28T10:00:00.123Z"
+}
+```
+
+| Field | Type | Mô tả |
+|-------|------|--------|
+| success | boolean | Luôn `true` khi HTTP 2xx |
+| message | string | Thông báo cho người dùng (hiển thị toast/snackbar) |
+| data | object \| array \| null | Dữ liệu trả về (sản phẩm vừa tạo, category, hoặc meta như productId, uploadedCount) |
+| timestamp | string (ISO 8601) | Thời điểm response |
+
+- **Tạo mới (POST):** HTTP **201 Created**, header `Location` trỏ tới resource vừa tạo, body là `ApiResponse` với `data` = object vừa tạo.
+- **Cập nhật / Xóa / Upload / Thêm spec:** HTTP **200 OK**, body là `ApiResponse` với `message` rõ ràng và `data` (chi tiết hoặc tổng kết).
+
+Frontend nên: kiểm tra `response.success`, hiển thị `response.message`, dùng `response.data` để cập nhật UI (ví dụ thêm item vào list sau khi tạo).
+
 ---
 
 ## 2. Xác thực (Auth)
@@ -210,7 +235,7 @@ interface ValidationError {
 
 ---
 
-### 4.4 Chi tiết sản phẩm (dạng detail – có ảnh, category name)
+### 4.4 Chi tiết sản phẩm (dạng detail – ảnh, category, specifications)
 
 **GET** `/api/public/products/detail/{id}`
 
@@ -222,13 +247,43 @@ interface ValidationError {
   "name": "Máy khoan XYZ",
   "price": 1250000.00,
   "images": ["/uploads/products/a.jpg", "/uploads/products/b.jpg"],
-  "categoryName": "Máy khoan"
+  "categoryName": "Máy khoan",
+  "specifications": [
+    { "specKey": "Công suất", "specValue": "750W" },
+    { "specKey": "Tốc độ không tải", "specValue": "0-3000 vòng/phút" }
+  ]
 }
 ```
 
+| Field | Type | Mô tả |
+|-------|------|--------|
+| id | number | ID sản phẩm |
+| name | string | Tên sản phẩm |
+| price | number | Giá |
+| images | string[] | Danh sách URL ảnh |
+| categoryName | string | Tên loại sản phẩm |
+| specifications | SpecEntryDTO[] | Thông số kỹ thuật – hiển thị dạng list (mỗi dòng: specKey + specValue) |
+
 ---
 
-### 4.5 Tìm kiếm & phân trang
+### 4.5 Danh sách loại sản phẩm (Category – cho dropdown/filter)
+
+**GET** `/api/public/categories`
+
+**Response 200:** Mảng `CategoryDTO[]`
+
+```json
+[
+  { "id": 1, "name": "Máy khoan" },
+  { "id": 2, "name": "Máy mài" }
+]
+```
+
+Dùng cho dropdown khi tạo/sửa sản phẩm hoặc filter danh sách (không cần đăng nhập).
+
+---
+
+### 4.6 Tìm kiếm & phân trang
 
 **GET** `/api/public/products/search?name=&page=0&size=10`
 
@@ -290,7 +345,30 @@ Nếu không gửi hoặc token hết hạn/sai → 401 (xem mục 3).
 | categoryId | number | Có | ID category |
 | isActive | boolean | Không | Mặc định true |
 
-**Response 200:** `ProductDTO` (sản phẩm vừa tạo).
+**Response 201 Created** (header `Location: /api/admin/products/{id}`):
+
+```json
+{
+  "success": true,
+  "message": "Tạo sản phẩm thành công.",
+  "data": {
+    "id": 1,
+    "name": "Máy khoan XYZ",
+    "slug": "may-khoan-xyz",
+    "description": "...",
+    "quantity": 50,
+    "price": 1250000.00,
+    "status": "ACTIVE",
+    "categoryId": 1,
+    "isActive": true,
+    "createdAt": "2025-01-28T...",
+    "updatedAt": "2025-01-28T..."
+  },
+  "timestamp": "2025-01-28T10:00:00.123Z"
+}
+```
+
+Frontend: hiển thị `message`, dùng `data` để cập nhật list hoặc chuyển sang trang chi tiết.
 
 ---
 
@@ -315,7 +393,7 @@ Nếu không gửi hoặc token hết hạn/sai → 401 (xem mục 3).
 
 Ràng buộc giống tạo (name 2–200, slug pattern, quantity 0–999999, price 0.01–..., status enum).
 
-**Response 200:** `ProductDTO` (sản phẩm sau khi cập nhật).  
+**Response 200 OK:** Body dạng `ApiResponse<ProductDTO>` – `message`: "Cập nhật sản phẩm thành công.", `data`: sản phẩm sau khi cập nhật.  
 **Lỗi 404:** Không tìm thấy sản phẩm.
 
 ---
@@ -324,7 +402,7 @@ Ràng buộc giống tạo (name 2–200, slug pattern, quantity 0–999999, pri
 
 **DELETE** `/api/admin/products/{id}`
 
-**Response 200:** Body thường là chuỗi thông báo (ví dụ `"Xoá thành công sản phẩm"`).  
+**Response 200 OK:** `ApiResponse` – `message`: "Xoá thành công sản phẩm", `data`: `{ "id": <id> }`.  
 **Lỗi 404:** Không tìm thấy sản phẩm.
 
 ---
@@ -344,10 +422,67 @@ files.forEach(file => formData.append('files', file));
 this.http.post(`${API}/api/admin/products/${id}/images`, formData).subscribe();
 ```
 
-**Response 200:** Body rỗng (204 hoặc 200).  
-Ảnh lưu trên server, URL dạng `/uploads/products/<uuid>_<tên file>.jpg` – backend lưu URL này vào DB và trả trong ProductDetailDTO / ProductListDTO (images, thumbnail).
+**Response 200 OK:** `ApiResponse` – `message`: "Upload ảnh thành công.", `data`: `{ "productId": <id>, "uploadedCount": <số file> }`.  
+Ảnh lưu trên server, URL dạng `/uploads/products/<uuid>_<tên file>.jpg` – backend lưu URL vào DB và trả trong ProductDetailDTO (images).
 
-**Lỗi:** 401 nếu chưa đăng nhập / token hết hạn; 4xx/5xx nếu upload lỗi (xem message trong body).
+**Lỗi 400:** Body `ApiResponse` với `success: false`, `message`: "File vượt quá 10MB."  
+**Lỗi 401:** Chưa đăng nhập / token hết hạn.
+
+---
+
+### 5.5 Thêm thông số kỹ thuật (Specifications) cho sản phẩm
+
+**POST** `/api/admin/products/{id}/specifications`
+
+**Request body (JSON):** Mảng `SpecEntryDTO[]`
+
+```json
+[
+  { "specKey": "Công suất", "specValue": "750W" },
+  { "specKey": "Tốc độ không tải", "specValue": "0-3000 vòng/phút" }
+]
+```
+
+| Field | Type | Bắt buộc | Ràng buộc |
+|-------|------|----------|-----------|
+| specKey | string | Có | Tên thông số, max 100 ký tự |
+| specValue | string | Có | Giá trị, max 500 ký tự |
+
+**Response 200 OK:** `ApiResponse` – `message`: "Thêm thông số kỹ thuật thành công.", `data`: `{ "productId": <id>, "addedCount": <số mục> }`.
+
+API chi tiết sản phẩm **GET** `/api/public/products/detail/{id}` sẽ trả về `specifications` tương ứng (list xuống dòng: mỗi phần tử là một cặp specKey – specValue).
+
+**Lỗi 404:** Không tìm thấy sản phẩm.
+
+---
+
+### 5.6 Loại sản phẩm (Category – Admin)
+
+#### Danh sách category (admin)
+
+**GET** `/api/admin/categories`
+
+**Response 200 OK:** `ApiResponse<List<CategoryDTO>>` – `message`: "Lấy danh sách loại sản phẩm thành công.", `data`: mảng category (id, name). Dùng cho dropdown khi tạo/sửa sản phẩm.
+
+#### Thêm loại sản phẩm
+
+**POST** `/api/admin/categories`
+
+**Request body (JSON):**
+
+```json
+{
+  "name": "Máy khoan"
+}
+```
+
+| Field | Type | Bắt buộc | Ràng buộc |
+|-------|------|----------|-----------|
+| name | string | Có | 1–100 ký tự, không trùng tên đã có |
+
+**Response 201 Created** (header `Location: /api/admin/categories/{id}`): `ApiResponse<CategoryDTO>` – `message`: "Tạo loại sản phẩm thành công.", `data`: category vừa tạo (id, name).
+
+**Lỗi 400:** Tên đã tồn tại hoặc validation.
 
 ---
 
@@ -413,12 +548,27 @@ export interface ProductListDTO {
   thumbnail: string | null;
 }
 
+export interface SpecEntryDTO {
+  specKey: string;
+  specValue: string;
+}
+
 export interface ProductDetailDTO {
   id: number;
   name: string;
   price: number;
   images: string[];
   categoryName: string | null;
+  specifications: SpecEntryDTO[];
+}
+
+export interface CategoryDTO {
+  id: number;
+  name: string;
+}
+
+export interface CategoryCreate {
+  name: string;
 }
 
 export interface PageResponse<T> {
@@ -451,6 +601,14 @@ export interface ProductUpdate {
   status?: ProductStatus;
   categoryId?: number;
   isActive?: boolean;
+}
+
+// standard success response (admin APIs)
+export interface ApiResponse<T> {
+  success: boolean;
+  message: string;
+  data: T;
+  timestamp: string;
 }
 
 // error
@@ -510,10 +668,14 @@ imageUrl = `${environment.apiUrl}${product.thumbnail}`;
 | GET | /api/public/products/{id} | Không | Chi tiết (ProductDTO) |
 | GET | /api/public/products/detail/{id} | Không | Chi tiết (ảnh, category) |
 | GET | /api/public/products/search | Không | Tìm kiếm + phân trang |
+| GET | /api/public/categories | Không | Danh sách loại sản phẩm (dropdown/filter) |
 | POST | /api/admin/products | Bearer | Tạo sản phẩm |
 | PUT | /api/admin/products/{id} | Bearer | Cập nhật sản phẩm |
 | DELETE | /api/admin/products/{id} | Bearer | Xóa sản phẩm |
 | POST | /api/admin/products/{id}/images | Bearer | Upload ảnh (multipart) |
+| POST | /api/admin/products/{id}/specifications | Bearer | Thêm thông số kỹ thuật |
+| GET | /api/admin/categories | Bearer | Danh sách loại sản phẩm (admin) |
+| POST | /api/admin/categories | Bearer | Thêm loại sản phẩm |
 
 ---
 
