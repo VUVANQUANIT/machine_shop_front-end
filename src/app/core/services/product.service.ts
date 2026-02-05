@@ -36,13 +36,39 @@ export class ProductService {
     return this.http.get<CategoryDTO[]>(`${this.base}/public/categories`);
   }
 
-  search(name: string, page: number, size: number): Observable<PageResponse<ProductDTO>> {
-    let params = new HttpParams().set('page', page).set('size', size);
-    if (name.trim()) {
-      params = params.set('name', name.trim());
+  search(params: {
+    keyword?: string;
+    categoryId?: number;
+    minPrice?: number;
+    maxPrice?: number;
+    page?: number;
+    size?: number;
+    sort?: string;
+  }): Observable<PageResponse<ProductListDTO>> {
+    let httpParams = new HttpParams();
+    if (params.keyword?.trim()) {
+      httpParams = httpParams.set('keyword', params.keyword.trim());
     }
-    return this.http.get<PageResponse<ProductDTO>>(`${this.base}/public/products/search`, {
-      params,
+    if (params.categoryId !== undefined && params.categoryId !== null) {
+      httpParams = httpParams.set('categoryId', params.categoryId);
+    }
+    if (params.minPrice !== undefined && params.minPrice !== null) {
+      httpParams = httpParams.set('minPrice', params.minPrice);
+    }
+    if (params.maxPrice !== undefined && params.maxPrice !== null) {
+      httpParams = httpParams.set('maxPrice', params.maxPrice);
+    }
+    if (params.page !== undefined) {
+      httpParams = httpParams.set('page', params.page);
+    }
+    if (params.size !== undefined) {
+      httpParams = httpParams.set('size', params.size);
+    }
+    if (params.sort) {
+      httpParams = httpParams.set('sort', params.sort);
+    }
+    return this.http.get<PageResponse<ProductListDTO>>(`${this.base}/public/products/search`, {
+      params: httpParams,
     });
   }
 

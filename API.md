@@ -283,29 +283,58 @@ Dùng cho dropdown khi tạo/sửa sản phẩm hoặc filter danh sách (không
 
 ---
 
-### 4.6 Tìm kiếm & phân trang
+### 4.6 Tìm kiếm & lọc sản phẩm (production)
 
-**GET** `/api/public/products/search?name=&page=0&size=10`
+**GET** `/api/public/products/search`
+
+Tìm kiếm theo từ khóa, lọc theo loại sản phẩm và khoảng giá, phân trang, sắp xếp. Chỉ trả về sản phẩm **ACTIVE**.
+
+**Query parameters:**
 
 | Query | Type | Mặc định | Mô tả |
 |-------|------|----------|--------|
-| name | string | (optional) | Tìm theo tên (bỏ trống = lấy tất cả) |
+| keyword | string | (optional) | Từ khóa tìm trong tên sản phẩm (không phân biệt hoa thường) |
+| categoryId | number | (optional) | Lọc theo ID loại sản phẩm (category) |
+| minPrice | number | (optional) | Giá tối thiểu (VNĐ), ví dụ 100000 |
+| maxPrice | number | (optional) | Giá tối đa (VNĐ), ví dụ 5000000 |
 | page | number | 0 | Trang (0-based) |
-| size | number | 10 | Số phần tử mỗi trang |
+| size | number | 12 | Số phần tử mỗi trang |
+| sort | string | (optional) | Sắp xếp: `field,direction`. Mặc định `createdAt,desc` |
 
-**Response 200:** `PageResponse<ProductDTO>`
+**Giá trị `sort` hợp lệ:**
+
+- `price,asc` / `price,desc` – theo giá
+- `createdAt,asc` / `createdAt,desc` – theo ngày tạo
+- `name,asc` / `name,desc` – theo tên
+
+**Ví dụ URL:**
+
+```
+GET /api/public/products/search?keyword=may&categoryId=2&minPrice=100000&maxPrice=5000000&page=0&size=12&sort=price,asc
+```
+
+**Response 200:** `PageResponse<ProductListDTO>`
 
 ```json
 {
-  "content": [ { "id": 1, "name": "...", "slug": "...", ... } ],
+  "content": [
+    {
+      "id": 1,
+      "name": "Máy khoan XYZ",
+      "price": 1250000.00,
+      "thumbnail": "/uploads/products/xxx.jpg"
+    }
+  ],
   "page": 0,
-  "size": 10,
+  "size": 12,
   "totalElements": 25,
   "totalPages": 3,
   "first": true,
   "last": false
 }
 ```
+
+Frontend có thể build query từ form: chỉ gửi tham số có giá trị (bỏ trống = không lọc theo tiêu chí đó).
 
 ---
 
@@ -667,7 +696,7 @@ imageUrl = `${environment.apiUrl}${product.thumbnail}`;
 | GET | /api/public/products | Không | Danh sách sản phẩm |
 | GET | /api/public/products/{id} | Không | Chi tiết (ProductDTO) |
 | GET | /api/public/products/detail/{id} | Không | Chi tiết (ảnh, category) |
-| GET | /api/public/products/search | Không | Tìm kiếm + phân trang |
+| GET | /api/public/products/search | Không | Tìm kiếm, lọc (keyword, category, giá), phân trang, sort |
 | GET | /api/public/categories | Không | Danh sách loại sản phẩm (dropdown/filter) |
 | POST | /api/admin/products | Bearer | Tạo sản phẩm |
 | PUT | /api/admin/products/{id} | Bearer | Cập nhật sản phẩm |

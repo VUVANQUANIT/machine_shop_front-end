@@ -1,41 +1,100 @@
 <section class="product-list-page">
-  <h1 class="page-title">Sản phẩm</h1>
+  <div class="search-bar">
+    <div class="search-bar__input-wrap">
+      <input
+        type="text"
+        [(ngModel)]="searchKeywordValue"
+        (keyup.enter)="onSearch()"
+        placeholder="Tìm kiếm sản phẩm..."
+        class="search-bar__input"
+      />
+      <button type="button" class="search-bar__btn" (click)="onSearch()">Tìm kiếm</button>
+    </div>
+    <div class="search-bar__sort">
+      <label for="sort">Sắp xếp:</label>
+      <select id="sort" [(ngModel)]="sortByValue" (change)="onSortChange()" class="search-bar__select">
+        <option value="price,asc">Giá: Thấp → Cao</option>
+        <option value="price,desc">Giá: Cao → Thấp</option>
+        <option value="createdAt,desc">Mới nhất</option>
+        <option value="createdAt,asc">Cũ nhất</option>
+        <option value="name,asc">Tên: A → Z</option>
+        <option value="name,desc">Tên: Z → A</option>
+      </select>
+    </div>
+  </div>
 
-  @if (loading) {
-    <div class="product-grid">
-      @for (i of [1,2,3,4,5,6]; track i) {
-        <div class="product-card product-card--skeleton">
-          <app-skeleton width="100%" height="200px" borderRadius="12px" />
-          <div class="product-card__body">
-            <app-skeleton width="80%" height="1.25rem" />
-            <app-skeleton width="50%" height="1.5rem" />
-          </div>
+  <div class="product-list-layout">
+    <aside class="sidebar">
+      <h2 class="sidebar__title">Loại sản phẩm</h2>
+      <ul class="category-list">
+        <li>
+          <button
+            type="button"
+            class="category-item"
+            [class.category-item--active]="selectedCategoryId() === null"
+            (click)="onCategoryClick(null)"
+          >
+            Tất cả
+          </button>
+        </li>
+        @for (cat of categories(); track cat.id) {
+          <li>
+            <button
+              type="button"
+              class="category-item"
+              [class.category-item--active]="selectedCategoryId() === cat.id"
+              (click)="onCategoryClick(cat.id)"
+            >
+              {{ cat.name }}
+            </button>
+          </li>
+        }
+      </ul>
+    </aside>
+
+    <main class="product-content">
+      @if (loading()) {
+        <div class="product-grid">
+          @for (i of [1,2,3,4,5,6]; track i) {
+            <div class="product-card product-card--skeleton">
+              <app-skeleton width="100%" height="200px" borderRadius="12px" />
+              <div class="product-card__body">
+                <app-skeleton width="80%" height="1.25rem" />
+                <app-skeleton width="50%" height="1.5rem" />
+              </div>
+            </div>
+          }
         </div>
-      }
-    </div>
-  } @else if (error) {
-    <p class="error-message">{{ error }}</p>
-  } @else if (products.length === 0) {
-    <p class="empty-message">Chưa có sản phẩm nào.</p>
-  } @else {
-    <div class="product-grid">
-      @for (product of products; track product.id) {
-        <a [routerLink]="['/products', product.id]" class="product-card">
-          <div class="product-card__image-wrap">
-            <img
-              [src]="product.thumbnail | imageUrl"
-              [alt]="product.name"
-              class="product-card__image"
-              loading="lazy"
-            />
+      } @else if (error()) {
+        <p class="error-message">{{ error() }}</p>
+      } @else if (products().length === 0) {
+        <p class="empty-message">Không tìm thấy sản phẩm nào.</p>
+      } @else {
+        <div class="product-grid">
+          @for (product of products(); track product.id) {
+            <a [routerLink]="['/products', product.id]" class="product-card">
+              <div class="product-card__image-wrap">
+                <img
+                  [src]="product.thumbnail | imageUrl"
+                  [alt]="product.name"
+                  class="product-card__image"
+                  loading="lazy"
+                />
+              </div>
+              <div class="product-card__body">
+                <h2 class="product-card__name">{{ product.name }}</h2>
+                <p class="product-card__price">{{ formatPrice(product.price) }}</p>
+                <span class="product-card__cta">Xem chi tiết</span>
+              </div>
+            </a>
+          }
+        </div>
+        @if (pageInfo()) {
+          <div class="pagination-info">
+            Hiển thị {{ products().length }} / {{ pageInfo()!.totalElements }} sản phẩm
           </div>
-          <div class="product-card__body">
-            <h2 class="product-card__name">{{ product.name }}</h2>
-            <p class="product-card__price">{{ formatPrice(product.price) }}</p>
-            <span class="product-card__cta">Xem chi tiết</span>
-          </div>
-        </a>
+        }
       }
-    </div>
-  }
+    </main>
+  </div>
 </section>
