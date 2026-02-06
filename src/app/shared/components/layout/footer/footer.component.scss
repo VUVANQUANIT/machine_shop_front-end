@@ -1,7 +1,7 @@
 .footer {
   margin-top: auto;
-  background: #1a1a1a;
-  color: #e5e7eb;
+  background: #ffffff;
+  border-top: 2px solid #e5e7eb;
 }
 
 .footer-content {
@@ -9,7 +9,7 @@
   margin: 0 auto;
   padding: 2.5rem 1.5rem;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: 3rem;
 }
 
@@ -20,35 +20,57 @@
 }
 
 .footer-title {
-  margin: 0;
-  font-size: 1.125rem;
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
   font-weight: 700;
-  color: #fff;
-  margin-bottom: 0.5rem;
+  color: #1a1a1a;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
-.footer-contact {
+.footer-description {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: #4b5563;
+}
+
+.footer-contact-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.875rem;
 }
 
 .contact-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
   font-size: 0.9375rem;
-  line-height: 1.6;
-  color: #d1d5db;
-  strong {
-    color: #fff;
-    font-weight: 600;
-  }
+  line-height: 1.5;
+}
+
+.contact-label {
+  font-weight: 600;
+  color: #374151;
+  min-width: 100px;
+}
+
+.contact-values {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-top: 0.125rem;
 }
 
 .contact-link {
-  color: #60a5fa;
+  color: #2563eb;
   text-decoration: none;
   transition: color 0.2s;
   &:hover {
-    color: #93c5fd;
+    color: #1d4ed8;
     text-decoration: underline;
   }
 }
@@ -61,11 +83,11 @@
 
 .map-link {
   font-size: 0.875rem;
-  color: #60a5fa;
+  color: #2563eb;
   text-decoration: none;
   transition: color 0.2s;
   &:hover {
-    color: #93c5fd;
+    color: #1d4ed8;
     text-decoration: underline;
   }
 }
@@ -74,7 +96,7 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 1.25rem 1.5rem;
-  border-top: 1px solid #374151;
+  border-top: 1px solid #e5e7eb;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -85,17 +107,27 @@
 .copyright {
   margin: 0;
   font-size: 0.875rem;
-  color: #9ca3af;
+  color: #6b7280;
 }
 
 .footer-link {
-  color: #d1d5db;
+  color: #4b5563;
   text-decoration: none;
   font-size: 0.875rem;
   font-weight: 500;
   transition: color 0.2s;
   &:hover {
-    color: #fff;
+    color: #1a1a1a;
+  }
+}
+
+@media (max-width: 1024px) {
+  .footer-content {
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+  }
+  .footer-section--map {
+    grid-column: 1 / -1;
   }
 }
 
@@ -106,6 +138,7 @@
     padding: 2rem 1rem;
   }
   .footer-section--map {
+    grid-column: 1;
     order: -1;
   }
   .footer-map iframe {
@@ -115,5 +148,14 @@
     flex-direction: column;
     text-align: center;
     padding: 1rem;
+  }
+  .contact-item {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+  .contact-values {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.5rem;
   }
 }

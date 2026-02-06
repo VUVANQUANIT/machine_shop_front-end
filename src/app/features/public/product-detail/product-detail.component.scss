@@ -43,8 +43,9 @@
 .detail-gallery__main-img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   display: block;
+  background: #f9fafb;
 }
 
 .detail-gallery__thumbs {
@@ -71,8 +72,9 @@
   img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
     display: block;
+    background: #f9fafb;
   }
 }
 

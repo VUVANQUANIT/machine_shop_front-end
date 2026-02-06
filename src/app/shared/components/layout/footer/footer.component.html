@@ -1,28 +1,40 @@
 <footer class="footer">
   <div class="footer-content">
     <div class="footer-section">
-      <h3 class="footer-title">Thông tin liên hệ</h3>
-      <div class="footer-contact">
-        <div class="contact-item">
-          <strong>Điện thoại:</strong>
-          <a [href]="'tel:' + phoneHai" class="contact-link">{{ phoneHai }}</a> (Mr.Hải)
-        </div>
-        <div class="contact-item">
-          <a [href]="'tel:' + phoneHang" class="contact-link">{{ phoneHang }}</a> (Mrs.Hằng)
-        </div>
-        <div class="contact-item">
-          <strong>Email:</strong>
+      <h3 class="footer-title">Hằng Hải</h3>
+      <p class="footer-description">
+        Chuyên máy cơ khí & máy ngành mộc đã qua sử dụng.<br />
+        Nhận sửa chữa – bảo dưỡng – lắp đặt.
+      </p>
+    </div>
+
+    <div class="footer-section">
+      <h3 class="footer-title">Liên hệ</h3>
+      <ul class="footer-contact-list">
+        <li class="contact-item">
+          <span class="contact-label">Điện thoại:</span>
+          <div class="contact-values">
+            <a [href]="'tel:' + phoneHai" class="contact-link">{{ phoneHai }}</a> (Mr.Hải)
+            <a [href]="'tel:' + phoneHang" class="contact-link">{{ phoneHang }}</a> (Mrs.Hằng)
+          </div>
+        </li>
+        <li class="contact-item">
+          <span class="contact-label">Email:</span>
           <a [href]="'mailto:' + email" class="contact-link">{{ email }}</a>
-        </div>
-        <div class="contact-item">
-          <strong>Facebook:</strong>
+        </li>
+        <li class="contact-item">
+          <span class="contact-label">Facebook:</span>
           <a [href]="facebookUrl" target="_blank" rel="noopener noreferrer" class="contact-link">Trang Facebook</a>
-        </div>
-        <div class="contact-item">
-          <strong>Địa chỉ:</strong>
+        </li>
+        <li class="contact-item">
+          <span class="contact-label">Giờ làm việc:</span>
+          <span>{{ workingHours }}</span>
+        </li>
+        <li class="contact-item">
+          <span class="contact-label">Địa chỉ:</span>
           <span>{{ address }}</span>
-        </div>
-      </div>
+        </li>
+      </ul>
     </div>
 
     <div class="footer-section footer-section--map">
@@ -36,7 +48,7 @@
           allowfullscreen=""
           loading="lazy"
           referrerpolicy="no-referrer-when-downgrade"
-          title="Bản đồ Machine Shop"
+          title="Bản đồ Hằng Hải"
         ></iframe>
         <a [href]="mapUrl" target="_blank" rel="noopener noreferrer" class="map-link">
           Xem trên Google Maps →
@@ -46,7 +58,7 @@
   </div>
 
   <div class="footer-bottom">
-    <p class="copyright">© {{ currentYear }} Machine Shop. All rights reserved.</p>
+    <p class="copyright">© {{ currentYear }} Hằng Hải. All rights reserved.</p>
     <a routerLink="/products" class="footer-link">Sản phẩm</a>
   </div>
 </footer>
