@@ -101,9 +101,10 @@
 .table-thumb {
   width: 48px;
   height: 48px;
-  object-fit: cover;
+  object-fit: contain;
   border-radius: 6px;
   display: block;
+  background: #f9fafb;
 }
 
 .table-actions {
@@ -289,9 +290,10 @@
 .image-list__thumb {
   width: 64px;
   height: 64px;
-  object-fit: cover;
+  object-fit: contain;
   border-radius: 6px;
   display: block;
+  background: #f9fafb;
 }
 
 .image-list__empty {

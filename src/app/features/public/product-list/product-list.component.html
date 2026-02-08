@@ -1,4 +1,14 @@
 <section class="product-list-page">
+  <div class="about-box">
+    <h2 class="about-box__title">Chúng tôi là ai</h2>
+    <p class="about-box__content">
+      <strong>HẰNG HẢI – MÁY MÓC CƠ KHÍ & THIẾT BỊ GỖ (ĐÃ QUA SỬ DỤNG)</strong><br />
+      Chuyên mua bán máy cũ: máy cưa, máy bào, máy phay, máy nén khí phục vụ ngành mộc và cơ khí.<br />
+      Nhận bảo dưỡng – sửa chữa – lắp đặt tận nơi.<br />
+      Cam kết máy hoạt động ổn định, giá hợp lý, hỗ trợ kỹ thuật lâu dài.
+    </p>
+  </div>
+
   <div class="search-bar">
     <div class="search-bar__input-wrap">
       <input
@@ -89,9 +99,57 @@
             </a>
           }
         </div>
-        @if (pageInfo()) {
+
+        @if (pageInfo() && pageInfo()!.totalPages > 1) {
+          <div class="pagination">
+            <button
+              type="button"
+              class="pagination__btn"
+              [disabled]="pageInfo()!.first"
+              (click)="goToPage(pageInfo()!.page - 1)"
+            >
+              ← Trước
+            </button>
+            <div class="pagination__pages">
+              @if (pageInfo()!.page > 2) {
+                <button type="button" class="pagination__page" (click)="goToPage(0)">1</button>
+                @if (pageInfo()!.page > 3) {
+                  <span class="pagination__ellipsis">...</span>
+                }
+              }
+              @for (p of getPageNumbers(); track p) {
+                <button
+                  type="button"
+                  class="pagination__page"
+                  [class.pagination__page--active]="p === pageInfo()!.page"
+                  (click)="goToPage(p)"
+                >
+                  {{ p + 1 }}
+                </button>
+              }
+              @if (pageInfo()!.page < pageInfo()!.totalPages - 3) {
+                <span class="pagination__ellipsis">...</span>
+                <button
+                  type="button"
+                  class="pagination__page"
+                  (click)="goToPage(pageInfo()!.totalPages - 1)"
+                >
+                  {{ pageInfo()!.totalPages }}
+                </button>
+              }
+            </div>
+            <button
+              type="button"
+              class="pagination__btn"
+              [disabled]="pageInfo()!.last"
+              (click)="goToPage(pageInfo()!.page + 1)"
+            >
+              Sau →
+            </button>
+          </div>
           <div class="pagination-info">
-            Hiển thị {{ products().length }} / {{ pageInfo()!.totalElements }} sản phẩm
+            Trang {{ pageInfo()!.page + 1 }} / {{ pageInfo()!.totalPages }} 
+            ({{ pageInfo()!.totalElements }} sản phẩm)
           </div>
         }
       }
